@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
+
 import os
 import sys
 import traceback
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Configuración robusta de rutas
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-# Importaciones con verificación
 try:
     from core import utils
     from core.config import Config
@@ -140,7 +140,6 @@ class OctoTubeCLI:
                 name = result['title']
                 print(f"[{i}/{total}] {status_icon} {name}\nsize: {file_size}KiB time: {int(elapsed//60)}:{int(elapsed%60):02d}")
 
-            # Final progress bar
             percent = 100
             bar = '-' * 20 + '>'
             print(f"{percent}% {bar} {total_size}KiB {int(total_time//60)}:{int(total_time%60):02d}")
@@ -161,7 +160,6 @@ class OctoTubeCLI:
                     except Exception as e:
                         print(f"{styles['error']}❌ Error processing video: {str(e)}{styles['reset']}")
 
-        # Reporte final
         success_rate = (success_count / total) * 100 if total > 0 else 0
         print(f"\n{styles['success']}✅ Descargas completadas!{styles['reset']}")
         print(f"{styles['info']}Resultados:{styles['reset']}")
