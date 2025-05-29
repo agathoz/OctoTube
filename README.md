@@ -33,10 +33,14 @@ YouTube Content Downloader
 
 ---
 
-## 🖥️ Demo
+## 🖥️ Execute
 
 ```bash
 git clone https://github.com/agathoz/OctoTube.git
 cd OctoTube
 pip install -r requirements.txt
 ```
+```bash
+python octotube.py 
+```
+
