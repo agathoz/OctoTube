@@ -17,7 +17,7 @@ try:
     from core.config import Config
     from core.downloader import get_content, process_video
 except ImportError as e:
-    print(f"❌ Error crítico de importación: {str(e)}")
+    print(f"❌ Error to import: {str(e)}")
     print("Detalles de ruta:")
     print(f" - Directorio actual: {os.getcwd()}")
     print(f" - Ruta del script: {__file__}")
@@ -57,7 +57,6 @@ class OctoTubeCLI:
             sys.exit(1)
 
     def get_user_input(self, prompt: str, validation_func=None) -> str:
-        """Obtiene entrada del usuario con validación opcional"""
         while True:
             try:
                 user_input = input(f"{self.styles['info']}{prompt}{self.styles['reset']}").strip()
@@ -66,11 +65,12 @@ class OctoTubeCLI:
                     continue
                 return user_input
             except KeyboardInterrupt:
-                print(f"\n{self.styles['warning']}Operación cancelada{self.styles['reset']}")
+                print(f"\n{self.styles['warning']}Operation Canceled{self.styles['reset']}")
                 sys.exit(0)
 
     def select_menu(self, title: str, options: list) -> int:
-        """Menú de selección con manejo robusto de errores"""
+        
+        
         print(f"\n{self.styles['info']}{title}{self.styles['reset']}")
         
         # Imprimir opciones numeradas
@@ -82,7 +82,7 @@ class OctoTubeCLI:
                 choice = int(input(f"\n{self.styles['option']}Selección: {self.styles['reset']}"))
                 if 1 <= choice <= len(options):
                     return choice
-                print(f"{self.styles['error']}¡Opción inválida! Ingrese entre 1 y {len(options)}{self.styles['reset']}")
+                print(f"{self.styles['error']} Option inbalid! Eter 1 or {len(options)}{self.styles['reset']}")
             except ValueError:
                 print(f"{self.styles['error']}¡Debe ingresar un número entero!{self.styles['reset']}")
             except KeyboardInterrupt:
@@ -161,14 +161,14 @@ class OctoTubeCLI:
                         print(f"{styles['error']}❌ Error processing video: {str(e)}{styles['reset']}")
 
         success_rate = (success_count / total) * 100 if total > 0 else 0
-        print(f"\n{styles['success']}✅ Descargas completadas!{styles['reset']}")
+        print(f"\n{styles['success']}✅ Download Completed!{styles['reset']}")
         print(f"{styles['info']}Resultados:{styles['reset']}")
         print(f" - {styles['success']}Exitosas: {success_count}/{total}{styles['reset']}")
         print(f" - {styles['error']}Fallidas: {total - success_count}/{total}{styles['reset']}")
         print(f" - {styles['info']}Tasa de éxito: {success_rate:.2f}%{styles['reset']}")
 
     def print_result(self, index: int, total: int, result: dict):
-        """Muestra resultados con formato mejorado"""
+        
         styles = self.styles
         status_icons = {
             'success': f"{styles['success']}✓",
@@ -246,10 +246,10 @@ class OctoTubeCLI:
 
             self.run_downloads(content, media_type, output_dir, verbose, quality)
         except KeyboardInterrupt:
-            print(f"\n{self.styles['warning']}⛔ Operación cancelada por el usuario{self.styles['reset']}")
+            print(f"\n{self.styles['warning']}⛔Operation invalid by the user{self.styles['reset']}")
             sys.exit(0)
         except Exception as e:
-            print(f"\n{self.styles['error']}❌ ERROR CRÍTICO: {str(e)}{self.styles['reset']}")
+            print(f"\n{self.styles['error']}❌ Critic ERROR: {str(e)}{self.styles['reset']}")
             traceback.print_exc()
             sys.exit(1)
 
@@ -258,5 +258,5 @@ if __name__ == "__main__":
         app = OctoTubeCLI()
         app.run()
     except Exception as e:
-        print(f"\n❌ ERROR INICIALIZANDO APLICACIÓN: {str(e)}")
+        print(f"\n❌ ERROR ERROR TO START: {str(e)}")
         sys.exit(1)
