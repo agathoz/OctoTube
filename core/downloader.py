@@ -6,7 +6,6 @@ from core.config import Config
 from core import utils
 
 def get_content(url: str) -> dict:
-    """Obtiene contenido de YouTube con manejo robusto de errores"""
     try:
         if "list=" in url:
             playlist = Playlist(url)
@@ -30,7 +29,6 @@ def get_content(url: str) -> dict:
         }
 
 def download_thumbnail(url: str, path: str) -> bool:
-    """Descarga thumbnail con manejo de errores mejorado"""
     for quality in Config.THUMBNAIL_QUALITIES:
         thumb_url = url
         for q in Config.THUMBNAIL_QUALITIES:
@@ -48,7 +46,6 @@ def download_thumbnail(url: str, path: str) -> bool:
     return False
 
 def process_video(video, options: dict) -> dict:
-    """Procesa un video con gestión de errores completa"""
     try:
         title = utils.sanitize_name(video.title)
         output_dir = options['output_dir']
