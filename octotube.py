@@ -4,6 +4,7 @@ import os
 import sys
 import traceback
 import time
+import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -17,12 +18,18 @@ try:
     from core.config import Config
     from core.downloader import get_content, process_video
 except ImportError as e:
-    print(f"❌ Error to import: {str(e)}")
-    print("Detalles de ruta:")
-    print(f" - Directorio actual: {os.getcwd()}")
-    print(f" - Ruta del script: {__file__}")
+    print(f"❌ Import error: {str(e)}")
+    print("Path details:")
+    print(f" - Current directory: {os.getcwd()}")
+    print(f" - Script path: {__file__}")
     print(f" - sys.path: {sys.path}")
     sys.exit(1)
+
+def check_ffmpeg():
+    ffmpeg_bin = utils.get_os_config().get('ffmpeg', 'ffmpeg')
+    if shutil.which(ffmpeg_bin) is None:
+        print("❌ 'ffmpeg' is not installed or not in PATH. Please install it before running OctoTube.")
+        sys.exit(1)
 
 class OctoTubeCLI:
     def __init__(self):
@@ -31,12 +38,10 @@ class OctoTubeCLI:
         self.print_header()
 
     def print_header(self):
-        """Muestra el encabezado con gestión de errores"""
         try:
             title_style = self.styles['title']
             reset_style = self.styles['reset']
             info_style = self.styles['info']
-            
             ascii_art = r"""     
  ██████\              ██\            █████████\       ██\                 
 ██  __██\             ██ |           \__██  __|       ██ |                
@@ -44,16 +49,14 @@ class OctoTubeCLI:
 ██ |  ██ |██  _____|\_██  _|  ██  __██\ ██ |██ |  ██ |██  __██\ ██  __██\ 
 ██ |  ██ |██ /        ██ |    ██ /  ██ |██ |██ |  ██ |██ |  ██ |████████ |
 ██ |  ██ |██ |        ██ |██\ ██ |  ██ |██ |██ |  ██ |██ |  ██ |██   ____|
- ██████  |\████████\  \█████  |\██████  |██ |\██████  |███████  |\████████\ 
- \______/  \_______|   \____/   \______/ \__| \______/ \_______/  \_______|
+ ██████  |\████████\  \█████  |\██████  |██ |\██████  |███████ |█████████\ 
+ \______/  \_______|   \____/   \______/ \__| \______/ \_______/ \_______|
 """
-            
             print(f"{title_style}{ascii_art}{reset_style}")
             print(f"{info_style}YouTube Content Downloader v2.1{reset_style}")
             print(f"{info_style}{'='*40}{reset_style}\n")
-            
         except Exception as e:
-            print(f"❌ Error en encabezado: {str(e)}")
+            print(f"❌ Error in header: {str(e)}")
             sys.exit(1)
 
     def get_user_input(self, prompt: str, validation_func=None) -> str:
@@ -61,35 +64,30 @@ class OctoTubeCLI:
             try:
                 user_input = input(f"{self.styles['info']}{prompt}{self.styles['reset']}").strip()
                 if validation_func and not validation_func(user_input):
-                    print(f"{self.styles['error']}Entrada inválida!{self.styles['reset']}")
+                    print(f"{self.styles['error']}Invalid input!{self.styles['reset']}")
                     continue
                 return user_input
             except KeyboardInterrupt:
-                print(f"\n{self.styles['warning']}Operation Canceled{self.styles['reset']}")
+                print(f"\n{self.styles['warning']}Operation canceled by user{self.styles['reset']}")
                 sys.exit(0)
 
     def select_menu(self, title: str, options: list) -> int:
-        
-        
         print(f"\n{self.styles['info']}{title}{self.styles['reset']}")
-        
-        # Imprimir opciones numeradas
         for i, option in enumerate(options, 1):
             print(f"{self.styles['option']}{i:>2}. {option}{self.styles['reset']}")
-        
         while True:
             try:
-                choice = int(input(f"\n{self.styles['option']}Selección: {self.styles['reset']}"))
+                choice = int(input(f"\n{self.styles['option']}Selection: {self.styles['reset']}"))
                 if 1 <= choice <= len(options):
                     return choice
-                print(f"{self.styles['error']} Option inbalid! Eter 1 or {len(options)}{self.styles['reset']}")
+                print(f"{self.styles['error']}Invalid option! Enter 1 to {len(options)}{self.styles['reset']}")
             except ValueError:
-                print(f"{self.styles['error']}¡Debe ingresar un número entero!{self.styles['reset']}")
+                print(f"{self.styles['error']}Please enter a valid integer!{self.styles['reset']}")
             except KeyboardInterrupt:
-                print(f"\n{self.styles['warning']}Selección cancelada{self.styles['reset']}")
+                print(f"\n{self.styles['warning']}Selection canceled{self.styles['reset']}")
                 sys.exit(0)
 
-    def run_downloads(self, content: dict, media_type: str, output_dir: str, verbose: bool = False, quality: str = None):
+    def run_downloads(self, content: dict, media_type: str, output_dir: str, quality: str = None, download_thumb: bool = True):
         styles = self.styles
         if content['type'] == 'error':
             print(f"{styles['error']}❌ {content['message']}{styles['reset']}")
@@ -112,81 +110,52 @@ class OctoTubeCLI:
         total_size = 0
         total_time = 0
 
-        if not verbose:
-            start_time = time.time()
-            for i, video in enumerate(videos, 1):
-                t0 = time.time()
+        start_time = time.time()
+        for i, video in enumerate(videos, 1):
+            t0 = time.time()
+            try:
                 result = process_video(video, {
                     'output_dir': output_dir,
                     'media_type': media_type,
-                    'verbose': False,
-                    'quality': quality
+                    'quality': quality,
+                    'download_thumb': download_thumb
                 })
-                t1 = time.time()
-                elapsed = t1 - t0
+                title = result.get('title', f"Video {i}")
+            except Exception as e:
+                result = {'status': 'error', 'title': f"Video {i}", 'message': str(e)}
+                title = result['title']
 
-                # Get file size if success
-                file_size = 0
-                if result['status'] == 'success':
-                    success_count += 1
-                    file_path = result.get('file_path')
-                    if file_path and os.path.exists(file_path):
-                        file_size = os.path.getsize(file_path) // 1024  # KiB
-                        total_size += file_size
-                total_time += elapsed
+            t1 = time.time()
+            elapsed = t1 - t0
 
-                # Print summary line for each file
-                status_icon = f"{styles['success']}✓{styles['reset']}" if result['status'] == 'success' else f"{styles['error']}✗{styles['reset']}"
-                name = result['title']
-                print(f"[{i}/{total}] {status_icon} {name}\nsize: {file_size}KiB time: {int(elapsed//60)}:{int(elapsed%60):02d}")
+            file_size = 0
+            if result['status'] == 'success':
+                success_count += 1
+                file_path = result.get('file_path')
+                if file_path and os.path.exists(file_path):
+                    file_size = os.path.getsize(file_path) // 1024  # KiB
+                    total_size += file_size
+            total_time += elapsed
 
-            percent = 100
-            bar = '-' * 20 + '>'
-            print(f"{percent}% {bar} {total_size}KiB {int(total_time//60)}:{int(total_time%60):02d}")
+            status_icon = f"{styles['success']}✓{styles['reset']}" if result['status'] == 'success' else f"{styles['error']}✗{styles['reset']}"
+            print(f"[{i}/{total}] {status_icon} {title} | size: {file_size}KiB | time: {int(elapsed//60)}:{int(elapsed%60):02d}")
+            if result['status'] != 'success' and 'message' in result:
+                print(f"   → {styles['error']}{result['message']}{styles['reset']}")
 
-        else:
-            with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS) as executor:
-                futures = [executor.submit(
-                    process_video,
-                    video,
-                    {'output_dir': output_dir, 'media_type': media_type, 'verbose': True, 'quality': quality}
-                ) for video in videos]
-                for i, future in enumerate(as_completed(futures), 1):
-                    try:
-                        result = future.result()
-                        self.print_result(i, total, result)
-                        if result['status'] == 'success':
-                            success_count += 1
-                    except Exception as e:
-                        print(f"{styles['error']}❌ Error processing video: {str(e)}{styles['reset']}")
+        percent = 100
+        bar = '-' * 20 + '>'
+        print(f"{percent}% {bar} {total_size}KiB {int(total_time//60)}:{int(total_time%60):02d}")
 
         success_rate = (success_count / total) * 100 if total > 0 else 0
-        print(f"\n{styles['success']}✅ Download Completed!{styles['reset']}")
-        print(f"{styles['info']}Resultados:{styles['reset']}")
-        print(f" - {styles['success']}Exitosas: {success_count}/{total}{styles['reset']}")
-        print(f" - {styles['error']}Fallidas: {total - success_count}/{total}{styles['reset']}")
-        print(f" - {styles['info']}Tasa de éxito: {success_rate:.2f}%{styles['reset']}")
-
-    def print_result(self, index: int, total: int, result: dict):
-        
-        styles = self.styles
-        status_icons = {
-            'success': f"{styles['success']}✓",
-            'error': f"{styles['error']}✗",
-            'unavailable': f"{styles['warning']}⚠"
-        }
-        
-        icon = status_icons.get(result['status'], '?')
-        status_text = f"{icon} {result['title']}{styles['reset']}"
-        
-        print(f"{styles['info']}[{index}/{total}]{styles['reset']} {status_text}")
-        
-        if 'message' in result:
-            print(f"   → {styles['error']}{result['message']}{styles['reset']}")
+        print(f"\n{styles['success']}✅ Download completed!{styles['reset']}")
+        print(f"{styles['info']}Results:{styles['reset']}")
+        print(f" - {styles['success']}Success: {success_count}/{total}{styles['reset']}")
+        print(f" - {styles['error']}Failed: {total - success_count}/{total}{styles['reset']}")
+        print(f" - {styles['info']}Success rate: {success_rate:.2f}%{styles['reset']}")
 
     def run(self):
-        """Flujo principal con gestión integral de errores"""
         try:
+            check_ffmpeg()
             url = self.get_user_input("YouTube URL (video/playlist): ")
             output_dir = self.get_user_input("Download folder (leave empty for current): ")
             if not output_dir.strip():
@@ -206,13 +175,6 @@ class OctoTubeCLI:
             media_types = ['mp3', 'mp4', 'wav', 'mkv']
             media_type = media_types[media_type_idx - 1]
 
-            # Verbosity selection
-            verbosity_choice = self.select_menu(
-                "Show verbose output?",
-                ["No (progress bar only)", "Yes (detailed output)"]
-            )
-            verbose = verbosity_choice == 2
-
             # Ask about downloading thumbnail
             download_thumb_choice = self.select_menu(
                 "Download cover image (JPG)?",
@@ -229,7 +191,6 @@ class OctoTubeCLI:
                     n = int(self.get_user_input(f"How many videos to download? (1-{total_videos}): ",
                                                 lambda x: x.isdigit() and 1 <= int(x) <= total_videos))
                     content['videos'] = content['videos'][:n]
-                # Create playlist folder
                 output_dir = utils.create_directory(os.path.join(output_dir, content['title']))
 
             # Video quality selection
@@ -244,12 +205,12 @@ class OctoTubeCLI:
                 q_idx = self.select_menu("Select video quality", qualities)
                 quality = qualities[q_idx - 1]
 
-            self.run_downloads(content, media_type, output_dir, verbose, quality)
+            self.run_downloads(content, media_type, output_dir, quality, download_thumb)
         except KeyboardInterrupt:
-            print(f"\n{self.styles['warning']}⛔Operation invalid by the user{self.styles['reset']}")
+            print(f"\n{self.styles['warning']}⛔ Operation canceled by user{self.styles['reset']}")
             sys.exit(0)
         except Exception as e:
-            print(f"\n{self.styles['error']}❌ Critic ERROR: {str(e)}{self.styles['reset']}")
+            print(f"\n{self.styles['error']}❌ Critical ERROR: {str(e)}{self.styles['reset']}")
             traceback.print_exc()
             sys.exit(1)
 
@@ -258,5 +219,5 @@ if __name__ == "__main__":
         app = OctoTubeCLI()
         app.run()
     except Exception as e:
-        print(f"\n❌ ERROR ERROR TO START: {str(e)}")
+        print(f"\n❌ ERROR TO START: {str(e)}")
         sys.exit(1)

@@ -118,3 +118,4 @@ def process_video(video, options: dict) -> dict:
         return {'status': 'success', 'title': title}
     except Exception as e:
         return {'status': 'error', 'title': title, 'message': str(e)}
+
