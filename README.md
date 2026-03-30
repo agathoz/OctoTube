@@ -16,11 +16,11 @@ YouTube Content Downloader
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![Downloads](https://img.shields.io/github/downloads/agathoz/OctoTube/total)
 -->
-> 🐙 OctoTube is a powerful and user-friendly YouTube downloader written in Python. Download entire playlists or single videos in multiple formats, with real-time progress, flexible options, and a robust CLI interface.
+> OctoTube is a powerful and user-friendly YouTube downloader written in Python. Download entire playlists or single videos in multiple formats, with real-time progress, flexible options, and a robust CLI interface.
 
 ---
 
-## ✨ Features
+##  Features
 
 - 🎥 Download videos or full playlists
 - 🎵 Convert to MP3, WAV, MP4, or MKV
@@ -33,7 +33,7 @@ YouTube Content Downloader
 
 ---
 
-## 🖥️ Execute
+##  Execute
 
 ```bash
 git clone https://github.com/agathoz/OctoTube.git
