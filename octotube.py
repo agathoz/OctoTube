@@ -18,7 +18,7 @@ try:
     from core.config import Config
     from core.downloader import get_content, process_video
 except ImportError as e:
-    print(f"❌ Import error: {str(e)}")
+    print(f" Import error: {str(e)}")
     print("Path details:")
     print(f" - Current directory: {os.getcwd()}")
     print(f" - Script path: {__file__}")
@@ -28,7 +28,7 @@ except ImportError as e:
 def check_ffmpeg():
     ffmpeg_bin = utils.get_os_config().get('ffmpeg', 'ffmpeg')
     if shutil.which(ffmpeg_bin) is None:
-        print("❌ 'ffmpeg' is not installed or not in PATH. Please install it before running OctoTube.")
+        print("'ffmpeg' is not installed or not in PATH. Please install it before running OctoTube.")
         sys.exit(1)
 
 class OctoTubeCLI:
@@ -56,7 +56,7 @@ class OctoTubeCLI:
             print(f"{info_style}YouTube Content Downloader v2.1{reset_style}")
             print(f"{info_style}{'='*40}{reset_style}\n")
         except Exception as e:
-            print(f"❌ Error in header: {str(e)}")
+            print(f" Error in header: {str(e)}")
             sys.exit(1)
 
     def get_user_input(self, prompt: str, validation_func=None) -> str:
@@ -90,14 +90,14 @@ class OctoTubeCLI:
     def run_downloads(self, content: dict, media_type: str, output_dir: str, quality: str = None, download_thumb: bool = True):
         styles = self.styles
         if content['type'] == 'error':
-            print(f"{styles['error']}❌ {content['message']}{styles['reset']}")
+            print(f"{styles['error']} {content['message']}{styles['reset']}")
             return
 
         if content['type'] == 'playlist':
-            print(f"\n{styles['success']}📚 Playlist detected:{styles['reset']} {content['title']}")
+            print(f"\n{styles['success']} Playlist detected:{styles['reset']} {content['title']}")
             print(f"{styles['info']}Videos in playlist: {len(content['videos'])}{styles['reset']}")
         else:
-            print(f"\n{styles['success']}🎥 Single video detected:{styles['reset']} {content['title']}{styles['reset']}")
+            print(f"\n{styles['success']} Single video detected:{styles['reset']} {content['title']}{styles['reset']}")
 
         videos = content['videos']
         total = len(videos)
@@ -147,7 +147,7 @@ class OctoTubeCLI:
         print(f"{percent}% {bar} {total_size}KiB {int(total_time//60)}:{int(total_time%60):02d}")
 
         success_rate = (success_count / total) * 100 if total > 0 else 0
-        print(f"\n{styles['success']}✅ Download completed!{styles['reset']}")
+        print(f"\n{styles['success']} Download completed!{styles['reset']}")
         print(f"{styles['info']}Results:{styles['reset']}")
         print(f" - {styles['success']}Success: {success_count}/{total}{styles['reset']}")
         print(f" - {styles['error']}Failed: {total - success_count}/{total}{styles['reset']}")
@@ -207,10 +207,10 @@ class OctoTubeCLI:
 
             self.run_downloads(content, media_type, output_dir, quality, download_thumb)
         except KeyboardInterrupt:
-            print(f"\n{self.styles['warning']}⛔ Operation canceled by user{self.styles['reset']}")
+            print(f"\n{self.styles['warning']} Operation canceled by user{self.styles['reset']}")
             sys.exit(0)
         except Exception as e:
-            print(f"\n{self.styles['error']}❌ Critical ERROR: {str(e)}{self.styles['reset']}")
+            print(f"\n{self.styles['error']} Critical ERROR: {str(e)}{self.styles['reset']}")
             traceback.print_exc()
             sys.exit(1)
 
@@ -219,5 +219,5 @@ if __name__ == "__main__":
         app = OctoTubeCLI()
         app.run()
     except Exception as e:
-        print(f"\n❌ ERROR TO START: {str(e)}")
+        print(f"\n ERROR TO START: {str(e)}")
         sys.exit(1)
